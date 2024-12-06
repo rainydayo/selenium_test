@@ -3,7 +3,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 
 df = pd.read_csv('Project_DSDE.csv')
 df['FWCI'] = 1
@@ -74,53 +74,66 @@ link = WebDriverWait(browser, 10).until(
 )
 link.click()
 
-# i = 3
-while True:  # Continue until no "Next" button is found
-    # if i == 0:
-    #     break
-    # else:
-    #     i = i-1
+counter = 1
+reload_attempted = False  # Track if the page has been reloaded
+
+while True:
     try:
-        # Locate all title elements on the page
-        title_element = WebDriverWait(browser, 10).until(
-            EC.presence_of_element_located((By.XPATH, "//h2[@data-testid='publication-titles']/span[@class='Highlight-module__MMPyY']"))
-        )
+        # Locate and process the title element
+        try:
+            title_element = WebDriverWait(browser, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//h2[@data-testid='publication-titles']/span[@class='Highlight-module__MMPyY']"))
+            )
+            title_text = title_element.text.strip()
+            print(f"Title {counter + 1}: {title_text}")
+        except StaleElementReferenceException:
+            print("Stale element reference detected. Re-locating title element...")
+            title_element = WebDriverWait(browser, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//h2[@data-testid='publication-titles']/span[@class='Highlight-module__MMPyY']"))
+            )
+            title_text = title_element.text.strip()
+            print(f"Title {counter + 1}: {title_text}")
 
-        title_text = title_element.text.strip()
-        print(f"Title: {title_text}")
-
-            # Check if the title is in the DataFrame
+        # Check if the title is in the DataFrame (replace df with your DataFrame)
         if title_text in df['title'].values:
             print("This title is in the dataframe.")
 
-                # Attempt to locate the FWCI value
+            # Attempt to locate and process the FWCI value
             try:
                 fwci_element = WebDriverWait(browser, 5).until(
                     EC.presence_of_element_located((By.XPATH, "//span[text()='FWCI']/ancestor::div[@data-testid='count-label-and-value']//span[@data-testid='clickable-count']"))
                 )
                 fwci_value = float(fwci_element.text.strip())
                 print(f"FWCI: {fwci_value}")
-                    # Update the FWCI value in the DataFrame
+                # Update the FWCI value in the DataFrame
                 df.loc[df['title'] == title_text, 'FWCI'] = fwci_value
             except TimeoutException:
                 print("FWCI not found for this title.")
         else:
             print("Title not found in the dataframe. Skipping to next title.")
-        
-        # Find and click the "Next" button to go to the next page
+
+        # Find and click the "Next" button to navigate to the next page
         try:
             next_button = WebDriverWait(browser, 10).until(
                 EC.element_to_be_clickable((By.XPATH, "//li[@class='nextLink']/a"))
             )
             next_button.click()
             print("Navigated to the next page.")
+            reload_attempted = False  # Reset reload flag after successful navigation
+            counter +=1
         except TimeoutException:
-            print("No 'Next' button found. Exiting pagination.")
-            break
+            print("No 'Next' button found.")
+            if not reload_attempted:
+                print("Reloading the page and retrying...")
+                browser.refresh()
+                reload_attempted = True  # Mark that the page has been reloaded
+            else:
+                print("No 'Next' button found after refresh. Exiting pagination.")
+                break
 
     except Exception as e:
         print(f"An error occurred: {e}")
         break
 
 # print(df[df['title'] == 'Prediction of the Mechanical Behaviour of HDPE Pipes Using the Artificial Neural Network Technique'])
-
+df.to_csv('Processed_FWCI_DSDE.csv', index=False)
