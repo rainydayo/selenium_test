@@ -1,8 +1,8 @@
 import requests
 
 # Constants
-API_KEY = 'ce142dd123be3f08bb89cb79e2c25654'.strip()  # Ensure no extra spaces
-SCOPUS_ID = '85181752598'
+API_KEY = '	468263d1be213487d32be1bf2920d579'.strip()  # Ensure no extra spaces
+SCOPUS_ID = '85040991051'
 BASE_URL = f'https://api.elsevier.com/content/abstract/scopus_id/{SCOPUS_ID}'
 HEADERS = {
     'X-ELS-APIKey': API_KEY,
