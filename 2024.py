@@ -5,12 +5,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 import requests
-import time
+import re
 
 # Constants
 API_KEY = '468263d1be213487d32be1bf2920d579'.strip()
 HEADERS = {'X-ELS-APIKey': API_KEY, 'Accept': 'application/json'}
-# FWCI_TIMEOUT = 5
 
 # Load input files
 df = pd.read_csv('Processed_2024.csv')  # File to update
@@ -96,7 +95,7 @@ def fetch_scopus_data(scopus_id):
 # def scrape_fwci():
 #     """Scrape FWCI from the page."""
 #     try:
-#         fwci_element = WebDriverWait(browser, FWCI_TIMEOUT).until(
+#         fwci_element = WebDriverWait(browser, 5).until(
 #             EC.presence_of_element_located((By.XPATH, "//span[text()='FWCI']/ancestor::div[@data-testid='count-label-and-value']//span[@data-testid='clickable-count']"))
 #         )
 #         fwci_text = fwci_element.text.strip()
@@ -104,48 +103,98 @@ def fetch_scopus_data(scopus_id):
 #     except TimeoutException:
 #         return None
 
-def scrape_authors():
-    """Scrape author names and return as a list of formatted strings."""
-    try:
-        # Locate all span elements containing author names
-        author_elements = WebDriverWait(browser, 5).until(
-            EC.presence_of_all_elements_located((By.XPATH, "//ul[@class='DocumentHeader-module__LpsWx']//li/button/span"))
-        )
+# def scrape_authors():
+#     """Scrape author names and return as a list of formatted strings."""
+#     try:
+#         # Locate all span elements containing author names
+#         author_elements = WebDriverWait(browser, 5).until(
+#             EC.presence_of_all_elements_located((By.XPATH, "//ul[@class='DocumentHeader-module__LpsWx']//li/button/span"))
+#         )
         
-        # Extract and format the author names
-        authors = []
-        for author in author_elements:
-            name = author.get_attribute('textContent').strip()
-            if ',' in name:
-                lastname, firstname = name.split(',', 1)
-                authors.append(f"{firstname.strip()} {lastname.strip()}")
-            else:
-                authors.append(name)
-        print(authors)
-        return str(authors)
+#         # Extract and format the author names
+#         authors = []
+#         for author in author_elements:
+#             name = author.get_attribute('textContent').strip()
+#             if ',' in name:
+#                 lastname, firstname = name.split(',', 1)
+#                 authors.append(f"{firstname.strip()} {lastname.strip()}")
+#             else:
+#                 authors.append(name)
+#         print(authors)
+#         return str(authors)
+#     except TimeoutException:
+#         print("Authors not found or timeout occurred.")
+#         return None
+
+def scrape_cited_count():
+    try:
+        cited_element = WebDriverWait(browser, 5).until(
+            EC.presence_of_element_located((By.XPATH, "//span[text()='Citations in Scopus']/ancestor::div[@data-testid='count-label-and-value']//span[@data-testid='clickable-count']"))
+        )
+        cited_text = cited_element.text.strip()
+        return float(cited_text) if cited_text else None
     except TimeoutException:
-        print("Authors not found or timeout occurred.")
         return None
 
+import re
+
+def scrape_ref_count():
+    """Scrape the reference count from the page."""
+    try:
+        # Locate the reference count element
+        ref_element = WebDriverWait(browser, 5).until(
+            EC.presence_of_element_located((By.XPATH, "//h4[@class='subTitle']"))
+        )
+        ref_text = ref_element.text.strip() or ref_element.get_attribute('textContent').strip()
+
+        match = re.search(r'\((\d+)\)', ref_text)
+        if match:
+            return int(match.group(1))
+        else:
+            return None
+    except TimeoutException:
+        return None
+
+    
+def scrape_publisher():
+    try:
+        # Locate the <dd> tag containing the publisher
+        publisher_element = WebDriverWait(browser, 5).until(
+            EC.presence_of_element_located((By.XPATH, "//dl[@data-testid='source-info-entry-publisher']/dd"))
+        )
+        publisher = publisher_element.get_attribute('textContent').strip()
+        print(publisher)
+        
+        return publisher
+    except TimeoutException:
+        return None
+    
 
 # Main scraping logic
 counter = 1
 for index, row in doc.iterrows():
-    print(f"Index: {counter}")
-    scopus_id = row['DocumentURL'].split('/')[-1]
+    # print(f"Index: {counter}")
+    # scopus_id = row['DocumentURL'].split('/')[-1]
+    scopus_id = '85029781991'
     browser.get(fetch_scopus_data(scopus_id))
     
     # fwci = scrape_fwci()
     # departments = scrape_departments()
     # keywords = scrape_keywords()
     # subject_area = scrape_subject_area()
-    authors = scrape_authors()
+    # authors = scrape_authors()
+    Cited_count = scrape_cited_count()
+    Ref_count = scrape_ref_count()
+    publisher = scrape_publisher()
     
     # df.loc[df['DocumentURL'] == row['DocumentURL'], 'FWCI'] = fwci if fwci else 1  # Default FWCI to 1
     # df.loc[df['DocumentURL'] == row['DocumentURL'], 'departments'] = departments if departments else '[None]'
     # df.loc[df['DocumentURL'] == row['DocumentURL'], 'keywords'] = keywords if keywords else '[None]'
     # df.loc[df['DocumentURL'] == row['DocumentURL'], 'subject_areas'] = subject_area if subject_area else 'None'
-    df.loc[df['DocumentURL'] == row['DocumentURL'], 'author_names'] = authors if authors else '[None]'
+    # df.loc[df['DocumentURL'] == row['DocumentURL'], 'author_names'] = authors if authors else '[None]'
+    df.loc[df['DocumentURL'] == row['DocumentURL'], 'Cited_count'] = Cited_count if Cited_count else 'None'
+    df.loc[df['DocumentURL'] == row['DocumentURL'], 'Ref_count'] = Ref_count if Ref_count else 'None'
+    df.loc[df['DocumentURL'] == row['DocumentURL'], 'publisher'] = publisher if publisher else 'None'
 
     counter += 1
     

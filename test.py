@@ -9,7 +9,7 @@ AFFILIATION_ID = '60028190'  # Chulalongkorn University's affiliation ID
 HEADERS = {'X-ELS-APIKey': API_KEY, 'Accept': 'application/json'}
 PAGE_SIZE = 25  # Number of results per API request
 MAX_ELEMENTS = 1100  # Fetch 1100 elements
-OUTPUT_FILE = '2024.csv'
+OUTPUT_FILE = '2017.csv'
 
 def fetch_documents(start, year):
     """Fetch documents from Scopus API for a specific year."""
@@ -47,7 +47,7 @@ def parse_results(data):
     return pd.DataFrame(records)
 
 # Fetch data
-year = 2024
+year = 2017
 all_data = []
 for start in range(0, MAX_ELEMENTS, PAGE_SIZE):
     print(f"Fetching records {start} to {start + PAGE_SIZE - 1} for year {year}...")
