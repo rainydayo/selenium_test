@@ -23,3 +23,28 @@ Ensure you have Python 3.x installed on your machine. You can download it from [
 Install the Selenium library using pip:
 ```bash
 pip install selenium
+```
+
+---
+
+## Source Code Details
+
+### 1. noscrape2.py
+Fetches data from the Scopus API for a specific year, retrieving document details like titles and api leading to URLs that lead to their respective pages.
+
+### 2. scopus_id.py
+Enhances the dataset by using the data retrieved from noscrape2.py to make additional API calls and fetch detailed document information.
+
+### 3. temp.py
+Handles web scraping tasks involving pagination. This script interacts with the "Next" button to scrape data across multiple pages.
+
+### 4. main.py
+Scrapes FWCI (Field-Weighted Citation Impact) values from URLs retrieved by scopus_id.py and updates the dataset.
+
+### 5. test.py
+Fetches data from the Scopus API in year 2024 and fetch additional data, just as noscrape2.py.
+
+### 6. 2024.py
+Similar to main.py, but focused specifically on scraping and completing the dataset for the year 2024.
+
+
