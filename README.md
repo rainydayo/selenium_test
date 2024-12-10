@@ -42,9 +42,9 @@ Handles web scraping tasks involving pagination. This script interacts with the 
 Scrapes FWCI (Field-Weighted Citation Impact) values from URLs retrieved by scopus_id.py and updates the dataset.
 
 ### 5. test.py
-Fetches data from the Scopus API in year 2024 and fetch additional data, just as noscrape2.py.
+Fetches data from the Scopus Search API in year 2017 and fetch additional data, just as noscrape2.py.
 
-### 6. 2024.py
-Similar to main.py, but focused specifically on scraping and completing the dataset for the year 2024.
+### 6. 2017.py
+Similar to main.py, but focused specifically on scraping and completing the dataset for the year 2017.
 
 
