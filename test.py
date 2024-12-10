@@ -3,12 +3,12 @@ import pandas as pd
 import time
 
 # Constants
-API_KEY = 'ce142dd123be3f08bb89cb79e2c25654'.strip()  # Replace with your API key
+API_KEY = 'ce142dd123be3f08bb89cb79e2c25654'.strip()
 BASE_URL = 'https://api.elsevier.com/content/search/scopus'
 AFFILIATION_ID = '60028190'  # Chulalongkorn University's affiliation ID
 HEADERS = {'X-ELS-APIKey': API_KEY, 'Accept': 'application/json'}
 PAGE_SIZE = 25  # Number of results per API request
-MAX_ELEMENTS = 1100  # Fetch 1100 elements
+MAX_ELEMENTS = 2000
 OUTPUT_FILE = '2017.csv'
 
 def fetch_documents(start, year):
@@ -32,17 +32,12 @@ def parse_results(data):
     for entry in entries:
         # Extract affiliations and countries
         affiliations = entry.get('affiliation', [])
-        countries = list({aff.get('affiliation-country', '') for aff in affiliations if aff.get('affiliation-country', '')})
+        #countries = list({aff.get('affiliation-country', '') for aff in affiliations if aff.get('affiliation-country', '')})
         affiliation_names = list({aff.get('affilname', '') for aff in affiliations if aff.get('affilname', '')})
         
         records.append({
             'title': entry.get('dc:title', ''),
-            'year': 2024,  # Hardcoded as we fetch data for 2024
-            'author_names': entry.get('dc:creator', ''),
-            'countries': '; '.join(countries),
             'affiliations': '; '.join(affiliation_names),
-            'FWCI': 1,  # Hardcoded as per requirement
-            'DocumentURL': entry.get('prism:url', '')
         })
     return pd.DataFrame(records)
 

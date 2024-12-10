@@ -12,8 +12,8 @@ API_KEY = '468263d1be213487d32be1bf2920d579'.strip()
 HEADERS = {'X-ELS-APIKey': API_KEY, 'Accept': 'application/json'}
 
 # Load input files
-df = pd.read_csv('Processed_2024.csv')  # File to update
-doc = pd.read_csv('2024.csv')  # Input data for scraping
+df = pd.read_csv('Processed_2017.csv')  # File to update
+doc = pd.read_csv('Processed_2017.csv')  # Input data for scraping
 
 # Selenium setup
 browser = webdriver.Chrome()
@@ -22,7 +22,9 @@ browser.get(url=url)
 html = browser.execute_script("return document.documentElement.outerHTML")
 html[:3000]
 
-accept_cookie = browser.find_element(By.ID, 'onetrust-accept-btn-handler')
+accept_cookie = WebDriverWait(browser, 5).until(
+                    EC.presence_of_element_located((By.ID, 'onetrust-accept-btn-handler'))
+                )
 accept_cookie.click()
 
 login_element = browser.find_element(By.NAME, 'pf.username')
@@ -48,83 +50,82 @@ def fetch_scopus_data(scopus_id):
     else:
         return None
 
-# def scrape_departments():
-#     """Scrape department information and return as a list of strings."""
-#     try:
-#         # Locate all span elements within the departments list
-#         department_elements = WebDriverWait(browser, 5).until(
-#             EC.presence_of_all_elements_located((By.XPATH, "//div[@class='DocumentHeader-module__vg6f0']//ul[@class='DocumentHeader-module__p4B_K']//li[@class='DocumentHeader-module__Ltfqf']/span"))
-#         )
+def scrape_departments():
+    """Scrape department information and return as a list of strings."""
+    try:
+        # Locate all span elements within the departments list
+        department_elements = WebDriverWait(browser, 5).until(
+            EC.presence_of_all_elements_located((By.XPATH, "//div[@class='DocumentHeader-module__vg6f0']//ul[@class='DocumentHeader-module__p4B_K']//li[@class='DocumentHeader-module__Ltfqf']/span"))
+        )
         
-#         # Extract the text, split by ',' and take the first item
-#         departments = [dept.text.split(',')[0].strip() for dept in department_elements if dept.text]
-#         #print(departments)
+        # Extract the text, split by ',' and take the first item
+        departments = [dept.text.split(',')[0].strip() for dept in department_elements if dept.text]
+        #print(departments)
         
-#         return str(departments)  # Return the list of department names
-#     except TimeoutException:
-#         return None
+        return str(departments)  # Return the list of department names
+    except TimeoutException:
+        return None
 
 
 
-# def scrape_keywords():
-#     """Scrape keywords from the page and return as a list of strings."""
-#     try:
-#         # Locate all span elements within <dd> tags under the specified parent element
-#         keyword_elements = WebDriverWait(browser, 5).until(
-#             EC.presence_of_all_elements_located((By.XPATH, "//div[@id='indexed-keywords']//dd//span/span[@class='Highlight-module__MMPyY']"))
-#         )
+def scrape_keywords():
+    """Scrape keywords from the page and return as a list of strings."""
+    try:
+        keyword_elements = WebDriverWait(browser, 5).until(
+            EC.presence_of_all_elements_located((By.XPATH, "//div[@id='indexed-keywords']//dd//span/span[@class='Highlight-module__MMPyY']"))
+        )
         
-#         keywords = [el.get_attribute('textContent').strip() for el in keyword_elements if el.get_attribute('textContent')]
-#         #print(keywords)
+        keywords = [el.get_attribute('textContent').strip() for el in keyword_elements if el.get_attribute('textContent')]
+        #print(keywords)
         
-#         return str(keywords)  # Return the list of keywords
-#     except TimeoutException:
-#         return None
+        return str(keywords)
+    except TimeoutException:
+        return None
 
 
-# def scrape_subject_area():
-#     """Scrape subject area from the page."""
-#     try:
-#         subject_area_element = WebDriverWait(browser, 5).until(
-#             EC.presence_of_element_located((By.XPATH, "//a[@id='source-preview-flyout']//em"))
-#         )
-#         return subject_area_element.get_attribute('textContent').strip()
-#     except TimeoutException:
-#         return None
+def scrape_subject_area():
+    """Scrape subject area from the page."""
+    try:
+        subject_area_element = WebDriverWait(browser, 5).until(
+            EC.presence_of_element_located((By.XPATH, "//a[@id='source-preview-flyout']//em"))
+        )
+        return subject_area_element.get_attribute('textContent').strip()
+    except TimeoutException:
+        return None
 
-# def scrape_fwci():
-#     """Scrape FWCI from the page."""
-#     try:
-#         fwci_element = WebDriverWait(browser, 5).until(
-#             EC.presence_of_element_located((By.XPATH, "//span[text()='FWCI']/ancestor::div[@data-testid='count-label-and-value']//span[@data-testid='clickable-count']"))
-#         )
-#         fwci_text = fwci_element.text.strip()
-#         return float(fwci_text) if fwci_text else None
-#     except TimeoutException:
-#         return None
+def scrape_fwci():
+    """Scrape FWCI from the page."""
+    try:
+        fwci_element = WebDriverWait(browser, 5).until(
+            EC.presence_of_element_located((By.XPATH, "//span[text()='FWCI']/ancestor::div[@data-testid='count-label-and-value']//span[@data-testid='clickable-count']"))
+        )
+        fwci_text = fwci_element.text.strip()
+        return float(fwci_text) if fwci_text else None
+    except TimeoutException:
+        return None
 
-# def scrape_authors():
-#     """Scrape author names and return as a list of formatted strings."""
-#     try:
-#         # Locate all span elements containing author names
-#         author_elements = WebDriverWait(browser, 5).until(
-#             EC.presence_of_all_elements_located((By.XPATH, "//ul[@class='DocumentHeader-module__LpsWx']//li/button/span"))
-#         )
+def scrape_authors():
+    """Scrape author names and return as a list of formatted strings."""
+    try:
+        # Locate all span elements containing author names
+        author_elements = WebDriverWait(browser, 5).until(
+            EC.presence_of_all_elements_located((By.XPATH, "//ul[@class='DocumentHeader-module__LpsWx']//li/button/span"))
+        )
         
-#         # Extract and format the author names
-#         authors = []
-#         for author in author_elements:
-#             name = author.get_attribute('textContent').strip()
-#             if ',' in name:
-#                 lastname, firstname = name.split(',', 1)
-#                 authors.append(f"{firstname.strip()} {lastname.strip()}")
-#             else:
-#                 authors.append(name)
-#         print(authors)
-#         return str(authors)
-#     except TimeoutException:
-#         print("Authors not found or timeout occurred.")
-#         return None
+        # Extract and format the author names
+        authors = []
+        for author in author_elements:
+            name = author.get_attribute('textContent').strip()
+            if ',' in name:
+                lastname, firstname = name.split(',', 1)
+                authors.append(f"{firstname.strip()} {lastname.strip()}")
+            else:
+                authors.append(name)
+        print(authors)
+        return str(authors)
+    except TimeoutException:
+        print("Authors not found or timeout occurred.")
+        return None
 
 def scrape_cited_count():
     try:
@@ -171,26 +172,26 @@ def scrape_publisher():
     
 
 # Main scraping logic
+doc_chunk = doc.iloc[1800:]
 counter = 1
-for index, row in doc.iterrows():
-    # print(f"Index: {counter}")
-    # scopus_id = row['DocumentURL'].split('/')[-1]
-    scopus_id = '85029781991'
+for index, row in doc_chunk.iterrows():
+    print(f"Index: {counter}")
+    scopus_id = row['DocumentURL'].split('/')[-1]
     browser.get(fetch_scopus_data(scopus_id))
     
-    # fwci = scrape_fwci()
+    fwci = scrape_fwci()
     # departments = scrape_departments()
     # keywords = scrape_keywords()
-    # subject_area = scrape_subject_area()
+    subject_area = scrape_subject_area()
     # authors = scrape_authors()
     Cited_count = scrape_cited_count()
     Ref_count = scrape_ref_count()
     publisher = scrape_publisher()
     
-    # df.loc[df['DocumentURL'] == row['DocumentURL'], 'FWCI'] = fwci if fwci else 1  # Default FWCI to 1
+    df.loc[df['DocumentURL'] == row['DocumentURL'], 'FWCI'] = fwci if fwci else 1  # Default FWCI to 1
     # df.loc[df['DocumentURL'] == row['DocumentURL'], 'departments'] = departments if departments else '[None]'
     # df.loc[df['DocumentURL'] == row['DocumentURL'], 'keywords'] = keywords if keywords else '[None]'
-    # df.loc[df['DocumentURL'] == row['DocumentURL'], 'subject_areas'] = subject_area if subject_area else 'None'
+    df.loc[df['DocumentURL'] == row['DocumentURL'], 'subject_areas'] = subject_area if subject_area else 'None'
     # df.loc[df['DocumentURL'] == row['DocumentURL'], 'author_names'] = authors if authors else '[None]'
     df.loc[df['DocumentURL'] == row['DocumentURL'], 'Cited_count'] = Cited_count if Cited_count else 'None'
     df.loc[df['DocumentURL'] == row['DocumentURL'], 'Ref_count'] = Ref_count if Ref_count else 'None'
@@ -200,5 +201,5 @@ for index, row in doc.iterrows():
     
 
 # Save updated DataFrame
-df.to_csv('Processed_2024.csv', index=False)
+df.to_csv('Processed_2017.csv', index=False)
 browser.quit()
